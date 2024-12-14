@@ -43,8 +43,8 @@
                                     class="w-full border border-gray-300 rounded-md">
                             </div>
                             <div>
-                                <x-textarea-trix value="{!! old('content', $data->content) !!}" id="x"
-                                    name="content"></x-textarea-trix>
+                                <textarea class="border border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm min-h-80"
+                                    name="content" id="content" cols="30" rows="10">{!! old('content', $data->content) !!}</textarea>
                             </div>
                             <div>
                                 <x-select name="status" id="status">

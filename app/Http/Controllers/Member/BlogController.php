@@ -2,15 +2,19 @@
 
 namespace App\Http\Controllers\Member;
 
+use DOMDocument;
 use App\Models\Post;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Gate;
 
 class BlogController extends Controller
 {
+    //Jika ada tanda garis merah abaikan saja
+
     protected $type = 'blog';
 
     /**
@@ -18,7 +22,7 @@ class BlogController extends Controller
      */
     public function index(Request $request)
     {
-        //Jika ada tanda garis merah abaikan saja
+
         $user = Auth::user();
         $search = $request->search;
         if ($user->can('admin-blogs')) {
@@ -82,10 +86,27 @@ class BlogController extends Controller
             $image->move($destination_path, $image_name);
         }
 
+        $content = $request->content;
+
+        $dom = new DOMDocument();
+        $dom->loadHTML($content, 9);
+        $contentImages = $dom->getElementsByTagName('img');
+
+        foreach ($contentImages as $key => $value) {
+            $data = base64_decode(explode(',', explode(';', $value->getAttribute('src'))[1])[1]);
+            $contentImageName = "/upload/" . time() . $key . '.png';
+            file_put_contents(public_path() . $contentImageName, $data);
+
+            $value->removeAttribute('src'); // remove src attribute
+            $value->setAttribute('src', $contentImageName);
+        }
+
+        $content = $dom->saveHTML();
+
         $data = [
             'title' => $request->title,
             'description' => $request->description,
-            'content' => $request->content,
+            'content' => $content,
             'status' => $request->status,
             'thumbnail' => isset($image_name) ? $image_name : null,
             'slug' => $this->generateSlug($request->title), // generate slug
@@ -147,10 +168,46 @@ class BlogController extends Controller
             $image->move($destination_path, $image_name);
         }
 
+        $content = $request->content;
+
+        $dom = new DOMDocument();
+        $dom->loadHTML($content, 9);
+        $contentImages = $dom->getElementsByTagName('img');
+
+        foreach ($contentImages as $key => $value) {
+            if (strpos($value->getAttribute('src'), 'data:image/') === 0) {
+
+                $table = Post::where('type', $this->type)->findOrFail($post->id);
+
+                $dom2 = new DOMDocument();
+                $dom2->loadHTML($table->content, 9);
+                $images = $dom2->getElementsByTagName('img');
+
+                foreach ($images as $key => $img) {
+
+                    $src = $img->getAttribute('src');
+                    $path = Str::of($src)->after('/');
+
+
+                    if (File::exists($path)) {
+                        File::delete($path);
+                    }
+                }
+
+                $data = base64_decode(explode(',', explode(';', $value->getAttribute('src'))[1])[1]);
+                $contentImageName = "/upload/" . time() . $key . '.png';
+                file_put_contents(public_path() . $contentImageName, $data);
+
+                $value->removeAttribute('src'); // remove src attribute
+                $value->setAttribute('src', $contentImageName);
+            }
+        }
+        $content = $dom->saveHTML();
+
         $data = [
             'title' => $request->title,
             'description' => $request->description,
-            'content' => $request->content,
+            'content' => $content,
             'status' => $request->status,
             'thumbnail' => isset($image_name) ? $image_name : $post->thumbnail,
             'slug' => $this->generateSlug($request->title, $post->id), // generate slug
@@ -167,10 +224,31 @@ class BlogController extends Controller
     public function destroy(Post $post)
     {
         Gate::authorize('delete', $post);
+
+
+        $table = Post::where('type', $this->type)->findOrFail($post->id);
+
+        $dom = new DOMDocument();
+        $dom->loadHTML($table->content, 9);
+        $images = $dom->getElementsByTagName('img');
+
+        foreach ($images as $key => $img) {
+
+            $src = $img->getAttribute('src');
+            $path = Str::of($src)->after('/');
+
+
+            if (File::exists($path)) {
+                File::delete($path);
+            }
+        }
+
         if (isset($post->thumbnail) && file_exists(public_path(getenv('CUSTOM_THUMBNAIL_LOCATION')) . '/' . $post->thumbnail)) {
             unlink(public_path(getenv('CUSTOM_THUMBNAIL_LOCATION')) . '/' . $post->thumbnail);
         }
-        Post::where('type', $this->type)->findOrFail($post->id)->delete();
+
+        $table->delete();
+
         return redirect()->route('member.blogs.index')->with('success', 'Data berhasil dihapus!');
     }
 
