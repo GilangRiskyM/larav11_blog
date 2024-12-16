@@ -63,7 +63,7 @@ class PageController extends Controller
         if ($request->hasFile('thumbnail')) {
             $image = $request->file('thumbnail');
             $image_name = time() . '_' . $image->getClientOriginalName();
-            $destination_path = public_path(getenv('CUSTOM_THUMBNAIL_LOCATION'));
+            $destination_path = public_path('thumbnails');
             $image->move($destination_path, $image_name);
         }
 
@@ -139,12 +139,12 @@ class PageController extends Controller
 
 
         if ($request->hasFile('thumbnail')) {
-            if (isset($post->thumbnail) && file_exists(public_path(getenv('CUSTOM_THUMBNAIL_LOCATION')) . '/' . $post->thumbnail)) {
-                unlink(public_path(getenv('CUSTOM_THUMBNAIL_LOCATION')) . '/' . $post->thumbnail);
+            if (isset($post->thumbnail) && file_exists(public_path('thumbnails') . '/' . $post->thumbnail)) {
+                unlink(public_path('thumbnails') . '/' . $post->thumbnail);
             }
             $image = $request->file('thumbnail');
             $image_name = time() . '_' . $image->getClientOriginalName();
-            $destination_path = public_path(getenv('CUSTOM_THUMBNAIL_LOCATION'));
+            $destination_path = public_path('thumbnails');
             $image->move($destination_path, $image_name);
         }
 
@@ -203,8 +203,8 @@ class PageController extends Controller
      */
     public function destroy(Post $post)
     {
-        if (isset($post->thumbnail) && file_exists(public_path(getenv('CUSTOM_THUMBNAIL_LOCATION')) . '/' . $post->thumbnail)) {
-            unlink(public_path(getenv('CUSTOM_THUMBNAIL_LOCATION')) . '/' . $post->thumbnail);
+        if (isset($post->thumbnail) && file_exists(public_path('thumbnails') . '/' . $post->thumbnail)) {
+            unlink(public_path('thumbnails') . '/' . $post->thumbnail);
         }
 
         $table = Post::where('type', $this->type)->findOrFail($post->id);
@@ -224,8 +224,8 @@ class PageController extends Controller
             }
         }
 
-        if (isset($post->thumbnail) && file_exists(public_path(getenv('CUSTOM_THUMBNAIL_LOCATION')) . '/' . $post->thumbnail)) {
-            unlink(public_path(getenv('CUSTOM_THUMBNAIL_LOCATION')) . '/' . $post->thumbnail);
+        if (isset($post->thumbnail) && file_exists(public_path('thumbnails') . '/' . $post->thumbnail)) {
+            unlink(public_path('thumbnails') . '/' . $post->thumbnail);
         }
 
         Post::where('type', $this->type)->findOrFail($post->id)->delete();

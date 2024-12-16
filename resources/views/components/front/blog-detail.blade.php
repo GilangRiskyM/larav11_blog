@@ -6,7 +6,7 @@
         {{ $data->title }}
     </x-slot>
     <x-slot name="pageBackground">
-        {{ asset(getenv('CUSTOM_THUMBNAIL_LOCATION') . '/' . $data->thumbnail) }}
+        {{ asset('thumbnails' . '/' . $data->thumbnail) }}
     </x-slot>
     <x-slot name="pageHeaderLink">
         {{ route('blog-detail', ['slug' => $data->slug]) }}
