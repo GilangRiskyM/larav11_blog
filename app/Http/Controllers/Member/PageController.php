@@ -157,23 +157,6 @@ class PageController extends Controller
         foreach ($contentImages as $key => $value) {
             if (strpos($value->getAttribute('src'), 'data:image/') === 0) {
 
-                $table = Post::where('type', $this->type)->findOrFail($post->id);
-
-                $dom2 = new DOMDocument();
-                $dom2->loadHTML($table->content, 9);
-                $images = $dom2->getElementsByTagName('img');
-
-                foreach ($images as $key => $img) {
-
-                    $src = $img->getAttribute('src');
-                    $path = Str::of($src)->after('/');
-
-
-                    if (File::exists($path)) {
-                        File::delete($path);
-                    }
-                }
-
                 $data = base64_decode(explode(',', explode(';', $value->getAttribute('src'))[1])[1]);
                 $contentImageName = "/upload/" . time() . $key . '.png';
                 file_put_contents(public_path() . $contentImageName, $data);
