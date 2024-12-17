@@ -185,6 +185,7 @@ class BlogController extends Controller
                 $value->setAttribute('src', $contentImageName);
             }
         }
+
         $content = $dom->saveHTML();
 
         $data = [

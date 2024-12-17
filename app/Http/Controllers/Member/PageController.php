@@ -165,6 +165,7 @@ class PageController extends Controller
                 $value->setAttribute('src', $contentImageName);
             }
         }
+
         $content = $dom->saveHTML();
 
         $data = [
